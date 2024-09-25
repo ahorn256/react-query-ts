@@ -78,7 +78,7 @@ const saveBook:Epic = (action$, state$) =>
         });
         
         if(response.ok) {
-          return response.json();
+          return await response.json();
         } else {
           throw new Error(`Couldn't add the book "${book.title}"`);
         }
