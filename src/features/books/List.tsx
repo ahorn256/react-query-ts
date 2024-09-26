@@ -5,6 +5,8 @@ import { Book, BookSort, BookSortIn } from "./Book";
 import { useNavigate } from "react-router-dom";
 import { filterBooks, sortBooks } from "./booksHelpers";
 import ErrorMessage from "../../ErrorMessage";
+import { useQuery } from "@tanstack/react-query";
+import { fetchBooks } from "./booksAPI";
 
 type Props = {
   filterByTitle?: string,
@@ -22,13 +24,19 @@ const List:React.FC<Props> = ({ filterByTitle }) => {
     orderBy: 'title',
     order: 'asc',
   });
+
+  const { data: books, error, isPending } = useQuery({
+    queryKey: ['books'],
+    queryFn: fetchBooks,
+  });
+
   const navigate = useNavigate();
-  const [ books ] = useState<Book[]>([]);
+
   const filteredBooks = useMemo<Book[]>(() =>
-    sortBooks(
+    books ? sortBooks(
       filterByTitle ?
         filterBooks(books, filterByTitle) :
-        books, sort),
+        books, sort) : [],
     [sort, books, filterByTitle]);
   
   function onDelete(book:Book) {
@@ -41,7 +49,8 @@ const List:React.FC<Props> = ({ filterByTitle }) => {
 
   return (
     <Paper>
-      {<ErrorMessage error={{message: 'TODO: Error'}}/> }
+      {isPending && <p>loading...</p>}
+      {error && <ErrorMessage error={{message: error.message}}/> }
       <Table>
         <TableHead>
           <TableRow>

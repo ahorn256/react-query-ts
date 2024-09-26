@@ -33,7 +33,7 @@ function BooksApp() {
             onChange={(e) => onFilter(e.target.value)} />
         </Grid>
         <Grid size={{xs:12, md:10}}>
-          <List />
+          <List filterByTitle={filter}/>
         </Grid>
         <Fab
           color='primary'

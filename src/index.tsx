@@ -4,14 +4,28 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './index.scss';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const container = document.getElementById('root')!;
 const root = createRoot(container);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      // retryOnMount: false,
+      refetchOnWindowFocus: false,
+      // refetchOnMount: false,
+      // refetchOnReconnect: false,
+    }
+  }
+});
 
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
