@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { IconButton, Paper, Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel } from "@mui/material";
 import { Delete, Edit, Star, StarBorder } from "@mui/icons-material";
 import { Book, BookSort, BookSortIn } from "./Book";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { selectBooks, selectBooksLoadingError, selectBooksLoadingState } from "./booksSlice";
 import { useNavigate } from "react-router-dom";
-import { sortBooks } from "./booksHelpers";
+import { filterBooks, sortBooks } from "./booksHelpers";
 import ErrorMessage from "../../ErrorMessage";
-import { loadBooksAction } from "./books.actions";
+
+type Props = {
+  filterByTitle?: string,
+}
 
 const tableHead = {
   title: 'Title',
@@ -16,21 +17,19 @@ const tableHead = {
   rating: 'Bewertung',
 };
 
-function List() {
+const List:React.FC<Props> = ({ filterByTitle }) => {
   const [ sort, setSort ] = useState<BookSort>({
     orderBy: 'title',
     order: 'asc',
   });
   const navigate = useNavigate();
-  const books = useAppSelector(selectBooks);
-  const booksLoadingState = useAppSelector(selectBooksLoadingState);
-  const booksLoadingError = useAppSelector(selectBooksLoadingError);
-  const dispatch = useAppDispatch();
-  const sortedBooks = useMemo<Book[]>(() => sortBooks(books, sort), [sort, books]);
-
-  useEffect(() => {
-    dispatch(loadBooksAction.request());
-  }, [dispatch]);
+  const [ books ] = useState<Book[]>([]);
+  const filteredBooks = useMemo<Book[]>(() =>
+    sortBooks(
+      filterByTitle ?
+        filterBooks(books, filterByTitle) :
+        books, sort),
+    [sort, books, filterByTitle]);
   
   function onDelete(book:Book) {
     navigate(`/delete/${book.id}`);
@@ -42,7 +41,7 @@ function List() {
 
   return (
     <Paper>
-      { booksLoadingState === 'error' && <ErrorMessage error={booksLoadingError}/> }
+      {<ErrorMessage error={{message: 'TODO: Error'}}/> }
       <Table>
         <TableHead>
           <TableRow>
@@ -64,7 +63,7 @@ function List() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortedBooks.map(book => (
+          {filteredBooks.map(book => (
             <TableRow key={book.id}>
               <TableCell>{book.title}</TableCell>
               <TableCell>{book.author}</TableCell>

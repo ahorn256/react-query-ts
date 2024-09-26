@@ -2,35 +2,24 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton }
 import { Close } from '@mui/icons-material';
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { resetBookRemoveState, selectBookRemoveError, selectBookRemoveState } from "./booksSlice";
-import { removeBookAction } from "./books.actions";
 
 function DeletionDialog() {
   const [ open, setOpen ] = useState(false);
   const { id } = useParams<{id:string}>();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const bookRemoveState = useAppSelector(selectBookRemoveState);
-  const bookRemoveError = useAppSelector(selectBookRemoveError);
 
   const onClose = useCallback(() => {
-    dispatch(resetBookRemoveState());
     setOpen(false);
     navigate('/');
-  }, [navigate, dispatch]);
+  }, [navigate]);
 
   useEffect(() => {
-    if(bookRemoveState === 'completed') {
-      onClose();
-    } else {
-      setOpen(true);
-    }
-  }, [id, bookRemoveState, onClose]);
+    setOpen(true);
+  }, []);
 
   function onConfirm(confirmed: boolean) {
     if(confirmed && id) {
-      dispatch(removeBookAction.request(id));
+      console.log('TODO: delete book with id ', id)
     } else {
       onClose();
     }
@@ -44,7 +33,7 @@ function DeletionDialog() {
       aria-describedby="confirm-dialog-description">
 
       <DialogTitle id="confirm-dialog-title">
-        { bookRemoveState === 'error' ? 'Error' : 'Confirm deletion' }
+        { 'TODO: Error or Confirm deletion message here' }
       </DialogTitle>
 
       <IconButton
@@ -58,17 +47,18 @@ function DeletionDialog() {
       </IconButton>
 
       <DialogContent id="confirm-dialog-description">
-        { bookRemoveState === 'error' ?
-          <div className="error">{bookRemoveError?.message}</div> :
-          `Do you want remove "${id}"?`
+        { <><div className="error">TODO: Error</div> or 
+          `Do you want remove "${id}"?` message</>
         }
       </DialogContent>
 
-      { bookRemoveState !== 'error' &&
+      { <>
+        TODO: hide actions on error
         <DialogActions>
           <Button onClick={() => onConfirm(false)}>Abbrechen</Button>
           <Button onClick={() => onConfirm(true)}>Ok</Button>
-        </DialogActions>}
+        </DialogActions>
+        </>}
     </Dialog>
   );
 }

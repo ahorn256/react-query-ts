@@ -6,9 +6,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { InputBook } from './Book';
 import formValidationSchema from './formValidationSchema';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { resetBookSaveState, selectBook, selectBookSaveError, selectBookSaveState } from './booksSlice';
-import { saveBookAction } from './books.actions';
 
 function FormDialog() {
   const {
@@ -22,27 +19,17 @@ function FormDialog() {
   const { id } = useParams<{id:string}>();
   const [ open, setOpen ] = useState(false);
   const navigate = useNavigate();
-  const getBook = useAppSelector(selectBook);
-  const dispatch = useAppDispatch();
-  const bookSaveState = useAppSelector(selectBookSaveState);
-  const bookSaveError = useAppSelector(selectBookSaveError);
 
   const onClose = useCallback(() => {
-    dispatch(resetBookSaveState());
     setOpen(false);
     navigate('/');
-  }, [navigate, dispatch]);
-
-  useEffect(() => {
-    if(bookSaveState === 'completed') {
-      onClose();
-    }
-  }, [onClose, bookSaveState]);
+  }, [navigate]);
 
   useEffect(() => {
     if(id) {
       setOpen(true);
-      const book = getBook(id);
+      const book = null; // TODO: getBook(id);
+
       if(book) {
         reset(book);
       } else {
@@ -55,10 +42,10 @@ function FormDialog() {
     } else {
       setOpen(true);
     }
-  }, [id, getBook, reset]);
+  }, [id, reset]);
 
   function onSave(book: InputBook) {
-    dispatch(saveBookAction.request(book));
+    console.log('TODO: on save: ', book);
   }
 
   return (
@@ -83,7 +70,7 @@ function FormDialog() {
 
       <form onSubmit={handleSubmit(onSave)}>
         <DialogContent id='form-dialog-description'>
-          {bookSaveState === 'error' && <div className='error'>Error: {bookSaveError?.message}</div>}
+          {<div className='error'>Error: TODO</div>}
           <Grid container direction={'column'} rowSpacing={1} display='flex'>
             <Grid>
               <TextField fullWidth={true} label='Titel' error={!!errors.title} {...register('title')}/>
