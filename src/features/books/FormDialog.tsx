@@ -3,9 +3,12 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid2 as Gri
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup'
-import { InputBook } from './Book';
+import { Book, InputBook } from './Book';
 import formValidationSchema from './formValidationSchema';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchBooks, saveBook } from './booksAPI';
+import { convertToFetchError, IFetchError } from '../../FetchError';
 
 function FormDialog() {
   const {
@@ -18,34 +21,61 @@ function FormDialog() {
   });
   const { id } = useParams<{id:string}>();
   const [ open, setOpen ] = useState(false);
+  const [ error, setError ] = useState<IFetchError|null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: saveBook,
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ['books']});
+      onClose();
+    },
+    onError(err) {
+      setError(convertToFetchError(err));
+    },
+  });
 
   const onClose = useCallback(() => {
+    setError(null);
     setOpen(false);
     navigate('/');
   }, [navigate]);
 
   useEffect(() => {
-    if(id) {
-      setOpen(true);
-      const book = null; // TODO: getBook(id);
+    (async () => {
+      let book:Book|undefined;
 
-      if(book) {
-        reset(book);
+      if(id) {
+        try {
+          const books = await queryClient.ensureQueryData({ queryKey: ['books'], queryFn: fetchBooks});
+          book = books && books.find(book => book.id === id);
+
+          if(!book) {
+            throw new Error(`Book with the id ${id} doesn't exist`);
+          }
+        } catch(err) {
+          setError(convertToFetchError(err));
+        }
+
+        setOpen(true);
+
+        if(book) {
+          reset(book);
+        } else {
+          reset({
+            title: '',
+            author: '',
+            isbn: '',
+          });
+        }
       } else {
-        reset({
-          title: '',
-          author: '',
-          isbn: '',
-        });
+        setOpen(true);
       }
-    } else {
-      setOpen(true);
-    }
+    })();
   }, [id, reset]);
 
   function onSave(book: InputBook) {
-    console.log('TODO: on save: ', book);
+    !error && mutation.mutate(book);
   }
 
   return (
@@ -70,7 +100,7 @@ function FormDialog() {
 
       <form onSubmit={handleSubmit(onSave)}>
         <DialogContent id='form-dialog-description'>
-          {<div className='error'>Error: TODO</div>}
+          {error && <div className='error'>Error: {error.message}</div>}
           <Grid container direction={'column'} rowSpacing={1} display='flex'>
             <Grid>
               <TextField fullWidth={true} label='Titel' error={!!errors.title} {...register('title')}/>

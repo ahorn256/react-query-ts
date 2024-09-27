@@ -31,41 +31,23 @@ export async function deleteBook(id: string) {
   }
 }
 
-export async function addBook(book: InputBook):Promise<Book> {
+export async function saveBook(book: InputBook):Promise<Book> {
   const url = process.env.REACT_APP_BACKEND_BOOKS_URL;
   if(!url) throw new Error('REACT_APP_BACKEND_BOOKS_URL undefined');
 
-  const response = await fetch(url, {
-    method: 'POST',
+  const hasId = 'id' in book;
+  const method = hasId ? 'PUT' : 'POST';
+  const fetchUrl = hasId ? `${url}/${book.id}` : url;
+
+  const response = await fetch(fetchUrl, {
+    method,
     body: JSON.stringify(book),
     headers: { 'content-type': 'application/json' },
   });
   
   if(response.ok) {
-    const addedBook = await response.json();
-    return addedBook;
+    return await response.json();
   } else {
-    throw new Error(`Couldn't add the book "${book.title}"`);
-  }
-}
-
-export async function updateBook(book: Book):Promise<Book> {
-  if(!('id' in book)) throw new Error(`Couldn't update a book. "id" is missing.`);
-
-  const msgEditFailed = `Couldn't edit a book with the id="${book.id}"`;
-  const url = process.env.REACT_APP_BACKEND_BOOKS_URL;
-
-  if(!url) throw new Error('REACT_APP_BACKEND_BOOKS_URL is not defined');
-
-  const response = await fetch(`${url}/${book.id}`, {
-    method: 'PUT',
-    body: JSON.stringify(book),
-    headers: { 'content-type': 'application/json' },
-  });
-
-  if(response.ok) {
-    return book;
-  } else {
-    throw new Error(msgEditFailed);
+    throw new Error(`Couldn't save the book "${book.title}"`);
   }
 }
