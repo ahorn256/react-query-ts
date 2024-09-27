@@ -72,7 +72,7 @@ function FormDialog() {
         setOpen(true);
       }
     })();
-  }, [id, reset]);
+  }, [id, reset, queryClient]);
 
   function onSave(book: InputBook) {
     !error && mutation.mutate(book);
