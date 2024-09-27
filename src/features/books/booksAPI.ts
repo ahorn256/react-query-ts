@@ -24,7 +24,9 @@ export async function deleteBook(id: string) {
     method: 'DELETE',
   });
 
-  if(!response.ok) {
+  if(response.ok) {
+    return id;
+  } else {
     throw new Error(`Couldn't delete the book with the id "${id}".`);
   }
 }

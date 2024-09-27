@@ -2,13 +2,29 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton }
 import { Close } from '@mui/icons-material';
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteBook } from "./booksAPI";
+import { convertToFetchError, IFetchError } from "../../FetchError";
 
 function DeletionDialog() {
   const [ open, setOpen ] = useState(false);
+  const [ error, setError ] = useState<IFetchError|null>(null);
   const { id } = useParams<{id:string}>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: deleteBook,
+    onSuccess() {
+      queryClient.invalidateQueries({queryKey: ['books']});
+      onClose();
+    },
+    onError(err) {
+      setError(convertToFetchError(err));
+    }
+  });
 
   const onClose = useCallback(() => {
+    setError(null);
     setOpen(false);
     navigate('/');
   }, [navigate]);
@@ -19,7 +35,7 @@ function DeletionDialog() {
 
   function onConfirm(confirmed: boolean) {
     if(confirmed && id) {
-      console.log('TODO: delete book with id ', id)
+      mutation.mutate(id);
     } else {
       onClose();
     }
@@ -33,7 +49,7 @@ function DeletionDialog() {
       aria-describedby="confirm-dialog-description">
 
       <DialogTitle id="confirm-dialog-title">
-        { 'TODO: Error or Confirm deletion message here' }
+        { error ? 'Error' : 'Confirm deletion' }
       </DialogTitle>
 
       <IconButton
@@ -47,18 +63,18 @@ function DeletionDialog() {
       </IconButton>
 
       <DialogContent id="confirm-dialog-description">
-        { <><div className="error">TODO: Error</div> or 
-          `Do you want remove "${id}"?` message</>
+        { error ?
+          <div className="error">Error: {error.message}</div>: 
+          `Do you want remove "${id}"?`
         }
       </DialogContent>
 
-      { <>
-        TODO: hide actions on error
+      { !error &&
         <DialogActions>
           <Button onClick={() => onConfirm(false)}>Abbrechen</Button>
           <Button onClick={() => onConfirm(true)}>Ok</Button>
         </DialogActions>
-        </>}
+      }
     </Dialog>
   );
 }
