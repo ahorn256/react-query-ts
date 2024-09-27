@@ -8,7 +8,6 @@ function BooksApp() {
   const [ filter, setFilter ] = useState('');
   const navigate = useNavigate();
 
-  // TODO: filter books
   function onFilter(filterBy: string) {
     setFilter(filterBy);
   }
